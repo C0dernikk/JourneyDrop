@@ -1,13 +1,25 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
+const cookieParser = require("cookie-parser");
 require("dotenv").config();
 
 const app = express();
 
 // Middleware
-// Permissive CORS: allow all origins (no credentials)
-app.use(cors());
+app.use(cookieParser());
+app.use(express.json());
+app.use(
+  cors({
+    // Allow common local dev ports and an optional deployed client URL
+    origin: [
+      "http://localhost:3000",
+      "http://localhost:5173",
+      process.env.CLIENT_URL || "https://your-frontend.vercel.app",
+    ],
+    credentials: true,
+  })
+);
 
 // Database connection
 const connectDB = async () => {
@@ -26,6 +38,7 @@ const connectDB = async () => {
 connectDB();
 
 // Routes
+app.use("/api/auth", require("./routes/auth"));
 app.use("/api/parcels", require("./routes/parcels"));
 app.use("/api/trips", require("./routes/trips"));
 app.use("/api/bookings", require("./routes/bookings"));

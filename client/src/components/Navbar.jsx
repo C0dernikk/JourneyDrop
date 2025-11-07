@@ -1,9 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
 import { useState } from 'react'
+import { useAuth } from '../context/AuthContext'
 
 const Navbar = () => {
   const location = useLocation()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const { user, logout } = useAuth()
 
   const isActive = (path) => location.pathname === path
 
@@ -12,7 +14,7 @@ const Navbar = () => {
     { path: '/send', label: 'Send Parcel' },
     { path: '/trip', label: 'Post Trip' },
     { path: '/matches', label: 'Matches' },
-    { path: '/bookings', label: 'Bookings' },
+    { path: '/bookings', label: 'Bookings', protected: true },
   ]
 
   return (
@@ -34,7 +36,9 @@ const Navbar = () => {
 
           {/* Desktop Navigation */}
           <div className="hidden md:flex items-center space-x-1">
-            {navLinks.map((link) => (
+            {navLinks
+              .filter((link) => !link.protected || user)
+              .map((link) => (
               <Link
                 key={link.path}
                 to={link.path}
@@ -49,7 +53,35 @@ const Navbar = () => {
                   <span className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-1/2 h-0.5 bg-primary-600 rounded-full"></span>
                 )}
               </Link>
-            ))}
+              ))}
+            <div className="ml-6 flex items-center space-x-3">
+              {user ? (
+                <>
+                  <span className="text-sm text-gray-600">Hi, {user.name || user.email}</span>
+                  <button
+                    onClick={logout}
+                    className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition"
+                  >
+                    Logout
+                  </button>
+                </>
+              ) : (
+                <>
+                  <Link
+                    to="/login"
+                    className="px-4 py-2 text-sm font-medium text-gray-700 hover:text-primary-600"
+                  >
+                    Log in
+                  </Link>
+                  <Link
+                    to="/register"
+                    className="px-4 py-2 text-sm font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition"
+                  >
+                    Sign up
+                  </Link>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Mobile menu button */}
@@ -87,7 +119,9 @@ const Navbar = () => {
         {mobileMenuOpen && (
           <div className="md:hidden py-4 border-t border-gray-100 animate-in slide-in-from-top">
             <div className="flex flex-col space-y-2">
-              {navLinks.map((link) => (
+              {navLinks
+                .filter((link) => !link.protected || user)
+                .map((link) => (
                 <Link
                   key={link.path}
                   to={link.path}
@@ -100,7 +134,40 @@ const Navbar = () => {
                 >
                   {link.label}
                 </Link>
-              ))}
+                ))}
+              <div className="pt-3 border-t border-gray-100 flex flex-col space-y-2">
+                {user ? (
+                  <>
+                    <span className="px-4 text-sm text-gray-600">Hi, {user.name || user.email}</span>
+                    <button
+                      onClick={() => {
+                        logout()
+                        setMobileMenuOpen(false)
+                      }}
+                      className="mx-4 px-4 py-3 text-base font-medium text-white bg-primary-600 rounded-lg hover:bg-primary-700 transition"
+                    >
+                      Logout
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <Link
+                      to="/login"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="px-4 py-3 rounded-lg text-base font-medium text-gray-700 hover:text-primary-600 hover:bg-gray-50"
+                    >
+                      Log in
+                    </Link>
+                    <Link
+                      to="/register"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="px-4 py-3 rounded-lg text-base font-medium text-white bg-primary-600 hover:bg-primary-700 transition"
+                    >
+                      Sign up
+                    </Link>
+                  </>
+                )}
+              </div>
             </div>
           </div>
         )}

@@ -1,7 +1,7 @@
 import { useState } from 'react'
 import { motion } from 'framer-motion'
 import toast from 'react-hot-toast'
-import api from '../utils/axios'
+import api from '../utils/api'
 
 const SendParcel = () => {
   const [formData, setFormData] = useState({
