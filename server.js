@@ -2,24 +2,62 @@ const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
 const cookieParser = require("cookie-parser");
+const helmet = require("helmet");
+const rateLimit = require("express-rate-limit");
 require("dotenv").config();
 
 const app = express();
 
+// Security middleware (only in production)
+if (process.env.NODE_ENV === 'production') {
+  app.use(helmet({
+    contentSecurityPolicy: {
+      directives: {
+        defaultSrc: ["'self'"],
+        styleSrc: ["'self'", "'unsafe-inline'"],
+        scriptSrc: ["'self'"],
+        imgSrc: ["'self'", "data:", "https:"],
+      },
+    },
+  }));
+  
+  // Rate limiting
+  const limiter = rateLimit({
+    windowMs: 15 * 60 * 1000, // 15 minutes
+    max: 100, // limit each IP to 100 requests per windowMs
+    message: 'Too many requests from this IP, please try again later.',
+  });
+  app.use('/api/', limiter);
+}
+
 // Middleware
 app.use(cookieParser());
 app.use(express.json());
-app.use(
-  cors({
-    // Allow common local dev ports and an optional deployed client URL
-    origin: [
+
+// CORS configuration
+const corsOptions = {
+  origin: (origin, callback) => {
+    const allowedOrigins = [
       "http://localhost:3000",
       "http://localhost:5173",
-      process.env.CLIENT_URL || "https://your-frontend.vercel.app",
-    ],
-    credentials: true,
-  })
-);
+      process.env.CLIENT_URL,
+    ].filter(Boolean); // Remove undefined/null values
+    
+    // Allow requests with no origin (mobile apps, curl, etc.)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
+app.use(cors(corsOptions));
 
 // Database connection
 const connectDB = async () => {
@@ -63,7 +101,28 @@ app.use((req, res) => {
   res.status(404).json({ message: "Route not found" });
 });
 
+// Environment validation
+const requiredEnvVars = ['JWT_SECRET'];
+const missingEnvVars = requiredEnvVars.filter(varName => !process.env[varName]);
+
+if (missingEnvVars.length > 0) {
+  console.warn('⚠️  Missing environment variables:', missingEnvVars.join(', '));
+  console.warn('   This may cause issues in production. Please check your deployment configuration.');
+}
+
+// Email configuration check
+const emailVars = ['SMTP_HOST', 'SMTP_USER', 'SMTP_PASS'];
+const missingEmailVars = emailVars.filter(varName => !process.env[varName]);
+if (missingEmailVars.length > 0 && missingEmailVars.length < 3) {
+  console.warn('📧 Partial email configuration missing:', missingEmailVars.join(', '));
+  console.warn('   Email features (password reset, verification) may not work properly.');
+}
+
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
-  console.log(`Server running on port ${PORT}`);
+  console.log(`🚀 Server running on port ${PORT} in ${process.env.NODE_ENV || 'development'} mode`);
+  console.log(`📍 Health check: http://localhost:${PORT}/api/health`);
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔒 Production mode: Security headers and rate limiting enabled');
+  }
 });
