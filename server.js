@@ -1,25 +1,13 @@
-const express = require('express');
-const mongoose = require('mongoose');
-const cors = require('cors');
-require('dotenv').config();
+const express = require("express");
+const mongoose = require("mongoose");
+const cors = require("cors");
+require("dotenv").config();
 
 const app = express();
 
 // Middleware
-const allowedOrigins = (process.env.FRONTEND_URLS
-  ? process.env.FRONTEND_URLS.split(',')
-  : [process.env.FRONTEND_URL || 'http://localhost:3000']
-).map(o => o.trim());
-
-app.use(cors({
-  origin(origin, callback) {
-    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
-    return callback(new Error('Not allowed by CORS'));
-  },
-  credentials: true,
-  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
-  allowedHeaders: ['Content-Type','Authorization'],
-}));
+// Permissive CORS: allow all origins (no credentials)
+app.use(cors());
 
 // Database connection
 const connectDB = async () => {
@@ -28,9 +16,9 @@ const connectDB = async () => {
       useNewUrlParser: true,
       useUnifiedTopology: true,
     });
-    console.log('MongoDB connected successfully');
+    console.log("MongoDB connected successfully");
   } catch (error) {
-    console.error('MongoDB connection error:', error.message);
+    console.error("MongoDB connection error:", error.message);
     process.exit(1);
   }
 };
@@ -38,32 +26,31 @@ const connectDB = async () => {
 connectDB();
 
 // Routes
-app.use('/api/parcels', require('./routes/parcels'));
-app.use('/api/trips', require('./routes/trips'));
-app.use('/api/bookings', require('./routes/bookings'));
-app.use('/api/matches', require('./routes/matches'));
+app.use("/api/parcels", require("./routes/parcels"));
+app.use("/api/trips", require("./routes/trips"));
+app.use("/api/bookings", require("./routes/bookings"));
+app.use("/api/matches", require("./routes/matches"));
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'OK', message: 'CourierConnect API is running' });
+app.get("/api/health", (req, res) => {
+  res.json({ status: "OK", message: "CourierConnect API is running" });
 });
 
 // Error handling middleware
 app.use((err, req, res, next) => {
   console.error(err.stack);
   res.status(err.status || 500).json({
-    message: err.message || 'Internal server error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    message: err.message || "Internal server error",
+    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
   });
 });
 
 // 404 handler
 app.use((req, res) => {
-  res.status(404).json({ message: 'Route not found' });
+  res.status(404).json({ message: "Route not found" });
 });
 
 const PORT = process.env.PORT || 5000;
 app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });
-
