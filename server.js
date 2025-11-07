@@ -6,11 +6,20 @@ require('dotenv').config();
 const app = express();
 
 // Middleware
+const allowedOrigins = (process.env.FRONTEND_URLS
+  ? process.env.FRONTEND_URLS.split(',')
+  : [process.env.FRONTEND_URL || 'http://localhost:3000']
+).map(o => o.trim());
+
 app.use(cors({
-  origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+  origin(origin, callback) {
+    if (!origin || allowedOrigins.includes(origin)) return callback(null, true);
+    return callback(new Error('Not allowed by CORS'));
+  },
   credentials: true,
+  methods: ['GET','POST','PUT','PATCH','DELETE','OPTIONS'],
+  allowedHeaders: ['Content-Type','Authorization'],
 }));
-app.use(express.json());
 
 // Database connection
 const connectDB = async () => {
