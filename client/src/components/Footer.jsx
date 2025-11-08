@@ -9,7 +9,7 @@ const Footer = () => {
               <span className="text-white font-bold text-xl">C</span>
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              CourierConnect
+              JourneyDrop
             </span>
           </div>
           
@@ -21,7 +21,7 @@ const Footer = () => {
           {/* Copyright */}
           <div className="pt-6 border-t border-gray-200">
             <p className="text-sm text-gray-500">
-              &copy; {new Date().getFullYear()} <span className="font-semibold text-gray-700">CourierConnect</span>. All rights reserved.
+              &copy; {new Date().getFullYear()} <span className="font-semibold text-gray-700">JourneyDrop</span>. All rights reserved.
             </p>
           </div>
         </div>

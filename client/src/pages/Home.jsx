@@ -61,7 +61,7 @@ const Home = () => {
           >
             <h1 className="text-5xl md:text-7xl lg:text-8xl font-bold mb-4">
               <span className="bg-gradient-to-r from-gray-900 via-primary-600 to-gray-900 bg-clip-text text-transparent">
-                CourierConnect
+                JourneyDrop
               </span>
             </h1>
           </motion.div>

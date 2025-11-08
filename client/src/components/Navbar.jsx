@@ -30,7 +30,7 @@ const Navbar = () => {
               <span className="text-white font-bold text-xl">C</span>
             </div>
             <span className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-              CourierConnect
+              JourneyDrop
             </span>
           </Link>
 
